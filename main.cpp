@@ -1,8 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <iomanip>
 
-std::vector<std::vector<int>> multiply(std::vector<std::vector<int>> &A, std::vector<std::vector<int>> &B)
+template<typename T, typename D>
+std::vector<std::vector<D>> multiply(std::vector<std::vector<T>> &A, std::vector<std::vector<D>> &B)
 {
     int columnsA = A[0].size(); // columns A
     int rowsB = B.size(); // rows B
@@ -14,7 +16,7 @@ std::vector<std::vector<int>> multiply(std::vector<std::vector<int>> &A, std::ve
     columnsA = A[0].size(); // columns A
     int columnsB = B[0].size(); // columns B
 
-    std::vector<std::vector<int>> C(rowsA, std::vector<int>(columnsB, 0));
+    std::vector<std::vector<D>> C(rowsA, std::vector<D>(columnsB, 0));
 
     for (int i = 0; i < rowsA; ++i)
         for (int j = 0; j < columnsB; ++j)
@@ -70,6 +72,76 @@ std::vector<std::vector<int>> transpose(std::vector<std::vector<int>> &A) {
     return B;
 }
 
+std::vector<std::vector<int>> getCofactor(std::vector<std::vector<int>> &A, int x, int y) {
+    int n = A.size();
+    std::vector<std::vector<int>> B(n-1, std::vector<int>(n-1, 0));
+
+    int i = 0, j = 0;
+
+    for (int row = 0; row < n; row++) {
+        for (int col = 0; col < n; col++) {
+            if (row != x && y != col) {
+                B[i][j++] = A[row][col];
+
+                if (j == n-1) {
+                    j = 0;
+                    i++;
+                }
+            }
+        }
+    }
+
+    return B;
+}
+
+std::vector<std::vector<int>> adjoint(std::vector<std::vector<int>> &A) {
+    int n = A.size();
+    std::vector<std::vector<int>> adj(n, std::vector<int>(n, 0));
+
+    if (n==1) {
+        adj[0][0] = 1;
+        return adj;
+    }
+
+    int sign = 1;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            auto temp = getCofactor(A, i, j);
+
+            // if i+j is even, sign is positive
+            sign = ((i+j) % 2 == 0) ? 1 : -1;
+
+            adj[i][j] = sign * determinant(temp);
+        }
+    }
+
+    return transpose(adj);
+}
+
+std::vector<std::vector<double>> inverse(std::vector<std::vector<int>> &A) {
+    int det = determinant(A);
+
+    if (det == 0) exit(1);
+
+    int n = A.size();
+
+    std::vector<std::vector<double>> B(n, std::vector<double>(n, 0.f));
+
+    /*
+    A^(-1) = (1/det(A))*adj(A)
+    */
+
+   double in_det = 1.0/det;
+   auto adj = adjoint(A);
+
+   for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+        B[i][j] = (double)(in_det*adj[i][j]);
+
+   return B;
+}
+
 int main(int argc, char const *argv[])
 {
     int n1, m1;
@@ -97,11 +169,18 @@ int main(int argc, char const *argv[])
 
     //std::cout << "determinant " << determinant(A) << std::endl;
 
-    auto B = transpose(A);
+    auto B = inverse(A);
+    auto C = multiply(A, B);
 
     for (int i = 0; i < m1; i++) {
         for (int j = 0; j < n1; j++)
             std::cout <<  B[i][j] << " ";
+        std::cout << std::endl;
+    }
+
+        for (int i = 0; i < m1; i++) {
+        for (int j = 0; j < n1; j++)
+            std::cout <<  C[i][j] << " ";
         std::cout << std::endl;
     }
     return 0;
