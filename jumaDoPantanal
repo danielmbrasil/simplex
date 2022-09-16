@@ -1,0 +1,19 @@
+qts equações
+qts var originais
+qts var folgas
+
+z = -x1-2x2
+
+x1 + x2 + x3 = 6
+x1 - x2 + x4 = 4
+-x1 + x2 + x5 = 4
+
+A = 1 1  | 1 0 0
+    1 -1 | 0 1 0
+    -1 1  | 0 0 1
+
+b = 6
+    4
+    4
+
+(B1, B2, B3) = (3, 4, 5)

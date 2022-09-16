@@ -1,0 +1,6 @@
+tres valores, nE (número de equações), nVO (número de variáveis originais) e nVF (número variáveis de folga)
+vetor de coeficientes da função Z (nVO)
+matriz A, cujo tamanho é nEx(nVO+nVF)
+vetor de termos independentes, cujo tamanho é nE
+vetor B (vetor dos indíces básicos), cujo tamanho é nE
+vetor N (vetor dos indíces não básicos), cujo tamanho é nVO+nVF
