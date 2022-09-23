@@ -11,6 +11,7 @@ void minimum(std::vector<double> const &vec, T *min, unsigned *index) {
     unsigned int c_hat_size = vec.size();
 
     *min = vec[0];
+    *index = 0;
     for (int i = 1; i < c_hat_size; i++) {
         if (*min > vec[i])
             *min = vec[i], *index = i;
@@ -28,18 +29,32 @@ void epsilon(std::vector<double> const &vec, T *min, int *index) {
     }
 }
 
+Matrix createBasicCoeficientsVector(std::vector<double> const &c, std::vector<int> const &B) {
+    unsigned n = B.size();
+
+    Matrix cB(n, 1);
+ 
+    for (unsigned i = 0; i < n; i++)
+        cB.setNewValueAtSpecificPositionOnMatrix(i, 0, c[B[i]]);
+
+    return cB;
+}
+
 int main(int argc, char const *argv[])
 {
-    int nE, nVO, nVF; // num equações, num var originais, num v folgas
+    unsigned nE, nVO, nVF; // num equações, num var originais, num v folgas
     std::cin >> nE >> nVO >> nVF;
+    unsigned total_variables = nVO + nVF;
 
-    Matrix A(nE, nVO+nVF); // matriz original
+    Matrix A(nE, total_variables); // matriz original
     Matrix b(nE, 1); // termos independentes, matriz nEx1
-    Matrix c(nVO+nVF, 1); // coeficients from Z, matriz (nVO+nVF)x1
-    std::vector<double> c_hat((nVO+nVF)-nE, 0.f);
+//    Matrix c(total_variables, 1); // coeficients from Z, matriz (nVO+nVF)x1
+    std::vector<double> c(total_variables, 0.f);
 
     // le vetor de coeficientes de Z
-    c.readMatrix();
+//    c.readMatrix();
+    for (unsigned i = 0; i < total_variables; i++)
+        std::cin >> c[i];
 
     // le matriz original
     A.readMatrix();
@@ -48,7 +63,7 @@ int main(int argc, char const *argv[])
     b.readMatrix();
 
     std::vector<int> basicIndexes(nE, 0); // vetor dos indices basicos
-    std::vector<int> nonBasicIndexes((nVO+nVF)-nE, 0); // vetor dos indices não básicos
+    std::vector<int> nonBasicIndexes(total_variables-nE, 0); // vetor dos indices não básicos
 
     // read basic indexes vector
     for (int i = 0; i < nE; i++)
@@ -61,61 +76,75 @@ int main(int argc, char const *argv[])
     Matrix B(A, basicIndexes); // matrix Basica
     Matrix N(A, nonBasicIndexes); //non-basic matrix
 
-    // print basic matrix for testing purposes
-    std::cout << "Matriz basica\n";
-    B.printMatrix();
-
     ulooooooooong it = 0;
 
     while (it++ < MAX_ITERATIONS) {
+        std::cout << "\nITERAÇÃO " << it << std::endl;
+
         /* ATEÇÃO - ATENCIÓN - BEWARE 
         * AQUI COMEÇA O SIMPLEX - AQUÍ EMPIEZA EL SIMPLEX - HERE THE SIMPLEX STARTS
         * PASSO 1: TIO(Xb) <- B^(-1)*b ----> tio(xb) é um vetor das sol. iniciais basicas
         *          TIO(Xn) <- 0        ----> tio(Xn) é um vetor inicialmente nulo das soluções n basicas
         */
 
-       Matrix B_inverse = B.inverse(); // B^(-1)
+        // print basic matrix for testing purposes
+        std::cout << "Matriz basica\n";
+        B.printMatrix();
+
+        std::cout << "Matriz nao basica\n";
+        N.printMatrix();
+
+        std::cout << "basic indexes\n";
+        for (auto i : basicIndexes)
+            std::cout << i << " ";
+        std::cout << std::endl;
+
+        std::cout << "non-basic indexes\n";
+        for (auto i : nonBasicIndexes)
+            std::cout << i << " ";
+        std::cout << std::endl;
+
+        Matrix B_inverse = B.inverse(); // B^(-1)
 
         // printa matriz B inversa para teste
         std::cout << "Matriz B inversa\n";
         B_inverse.printMatrix();
 
-        std::cout << "dim " << b.getRows() << " " << b.getCols() << std::endl;
-        std::cout << "  aa" << b.test() << std::endl;
-        std::cout << std::endl;
         Matrix Xb = B_inverse * b; // basic solutions --- TIO(Xb) <- B^(-1)*b
-        std::cout << "n acredito\n";
-        std::vector<double> Xn((nVO+nVF)-nE, 0.f); // non-basic solutions --- TIO(Xn) <- 0 
+        std::vector<double> Xn(total_variables-nE, 0.f); // non-basic solutions --- TIO(Xn) <- 0 
+
+        std::cout << "Xb" << std::endl;
+        Xb.printMatrix();
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASSO 2: Cálculo dos custos relativos
         *          2.1: vetor multiplicador simplex
         *               λ ← cB B^(−1) ---> λ vetor mult, cB custos básicos, B_inverse
         */
-        std::cout << "ola\n";
-        Matrix cB = c.getBasicCoeficientsMatrix(basicIndexes);
-        std::cout << "ola tudo bem\n";
+
+        Matrix cB = createBasicCoeficientsVector(c, basicIndexes);
+
         Matrix lambida = cB.transpose() * B_inverse;
-        Matrix lambida_t = lambida.transpose();
+        //Matrix lambida_t = lambida.transpose();
 
         std::cout << "cb\n";
         cB.printMatrix();
 
-        std::cout << std::endl << "dimensoes lambida " << lambida.getRows() << " " << lambida.getCols() << std::endl;
-        std::cout << "dimensoes lambida transposta " << lambida_t.getRows() << " " << lambida_t.getCols() << std::endl;
-        std::cout << "lambida transposta\n";
-        lambida_t.printMatrix();
+        std::cout << "lambida\n";
+        lambida.printMatrix();
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASSO 2: Cálculo dos custos relativos
         *          2.2: custos relativos
         *               cChapeuNj <- cNj - lambida_t*aNj j = 1, 2, ..., n-m
         */
+
+       std::vector<double> c_hat;
         
-        for (unsigned j = 0; j < (nVO+nVF)-nE; j++) {
-            Matrix a = N.getColumnMatrix(nonBasicIndexes[j]);
-            Matrix lambida_nao_basico = lambida_t * a.transpose();
-            c_hat[nonBasicIndexes[j]] = c.getMatrix()[nonBasicIndexes[j]][0] - lambida_nao_basico.getMatrix()[0][0]; 
+        for (unsigned j = 0; j < total_variables-nE; j++) {
+            Matrix a = A.getColumnMatrix(nonBasicIndexes[j]);
+            Matrix lambida_nao_basico = lambida * a;
+            c_hat.push_back(c[nonBasicIndexes[j]] - lambida_nao_basico.getMatrix()[0][0]); 
         }
 
         std::cout << "c hat\n";
@@ -135,6 +164,7 @@ int main(int argc, char const *argv[])
         int min;
         unsigned k;
         minimum(c_hat, &min, &k);
+        std::cout << "min " << min << " k " << k << std::endl;
         c_hat[nonBasicIndexes[k]] = min;
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
@@ -194,10 +224,6 @@ int main(int argc, char const *argv[])
     }
 
     std::cout << "final\n";
-
-    for (auto i : c_hat)
-        std::cout << i << " ";
-    std:: cout << std::endl;
 
     return 0;
 }

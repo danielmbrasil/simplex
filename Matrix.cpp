@@ -142,6 +142,10 @@ Matrix Matrix::inverse() {
    return result;
 }
 
+std::vector<std::vector<double>> &Matrix::getMatrix() {
+    return m_matrix;
+}
+
 void Matrix::readMatrix() {
     for (unsigned i = 0; i < this->getRows(); i++)
         for (unsigned j = 0; j < this->getCols(); j++)
@@ -165,17 +169,6 @@ Matrix Matrix::getColumnMatrix(unsigned col) {
 
 
     return columnMatrix;
-}
-
-Matrix Matrix::getBasicCoeficientsMatrix(std::vector<int> const &B) {
-    int n = B.size();
-
-    Matrix cB(n, 1);
- 
-    for (int i = 0; i < n; i++)
-        cB.m_matrix[i][0] = this->m_matrix[B[i]][0];
-
-    return cB;
 }
 
 bool Matrix::isNegative() {
