@@ -29,7 +29,7 @@ void epsilon(std::vector<double> const &vec, T *min, int *index) {
     }
 }
 
-Matrix createBasicCoeficientsVector(std::vector<double> const &c, std::vector<int> const &B) {
+Matrix createBasicCoeficientsVector(std::vector<double> const &c, std::vector<unsigned> const &B) {
     unsigned n = B.size();
 
     Matrix cB(n, 1);
@@ -42,39 +42,37 @@ Matrix createBasicCoeficientsVector(std::vector<double> const &c, std::vector<in
 
 int main(int argc, char const *argv[])
 {
-    unsigned nE, nVO, nVF; // num equações, num var originais, num v folgas
-    std::cin >> nE >> nVO >> nVF;
-    unsigned total_variables = nVO + nVF;
+    unsigned contraints_number, variables_number; // num equações, num var originais, num v folgas
+    std::cin >> contraints_number >> variables_number;
+    unsigned total_variables = variables_number + contraints_number;
 
-    Matrix A(nE, total_variables); // matriz original
-    Matrix b(nE, 1); // termos independentes, matriz nEx1
-//    Matrix c(total_variables, 1); // coeficients from Z, matriz (nVO+nVF)x1
+    Matrix *A = new Matrix(contraints_number, total_variables); // matriz original
+    Matrix *b = new Matrix(contraints_number, 1); // termos independentes, matriz contraints_numberx1
     std::vector<double> c(total_variables, 0.f);
 
     // le vetor de coeficientes de Z
-//    c.readMatrix();
-    for (unsigned i = 0; i < total_variables; i++)
+    for (unsigned i = 0; i < variables_number; i++)
         std::cin >> c[i];
 
     // le matriz original
-    A.readMatrix();
+    A->readMatrix();
 
-    // lee el arreglo de los tiermos independientes
-    b.readMatrix();
+    // lee la matriz de los tiermos independientes
+    b->readMatrix();
 
-    std::vector<int> basicIndexes(nE, 0); // vetor dos indices basicos
-    std::vector<int> nonBasicIndexes(total_variables-nE, 0); // vetor dos indices não básicos
+    std::vector<unsigned> basicIndexes(contraints_number, 0); // vetor dos indices basicos
+    std::vector<unsigned> nonBasicIndexes(total_variables-contraints_number, 0); // vetor dos indices não básicos
 
     // read basic indexes vector
-    for (int i = 0; i < nE; i++)
+    for (int i = 0; i < contraints_number; i++)
         std::cin >> basicIndexes[i];
 
     // read non-basic indexes vector
-    for (int i = 0; i < ((nVO+nVF)-nE); i++)
+    for (int i = 0; i < variables_number; i++)
         std::cin >> nonBasicIndexes[i];
 
-    Matrix B(A, basicIndexes); // matrix Basica
-    Matrix N(A, nonBasicIndexes); //non-basic matrix
+    Matrix *B = new Matrix(A, basicIndexes); // matrix Basica
+    Matrix *N = new Matrix(A, nonBasicIndexes); //non-basic matrix
 
     ulooooooooong it = 0;
 
@@ -89,10 +87,10 @@ int main(int argc, char const *argv[])
 
         // print basic matrix for testing purposes
         std::cout << "Matriz basica\n";
-        B.printMatrix();
+        B->printMatrix();
 
         std::cout << "Matriz nao basica\n";
-        N.printMatrix();
+        N->printMatrix();
 
         std::cout << "basic indexes\n";
         for (auto i : basicIndexes)
@@ -104,17 +102,17 @@ int main(int argc, char const *argv[])
             std::cout << i << " ";
         std::cout << std::endl;
 
-        Matrix B_inverse = B.inverse(); // B^(-1)
+        Matrix *B_inverse = new Matrix(B->inverse()); // B^(-1)
 
         // printa matriz B inversa para teste
         std::cout << "Matriz B inversa\n";
-        B_inverse.printMatrix();
+        B_inverse->printMatrix();
 
-        Matrix Xb = B_inverse * b; // basic solutions --- TIO(Xb) <- B^(-1)*b
-        std::vector<double> Xn(total_variables-nE, 0.f); // non-basic solutions --- TIO(Xn) <- 0 
+        Matrix *Xb = new Matrix(B_inverse->multiply(b)); // basic solutions --- TIO(Xb) <- B^(-1)*b
+        std::vector<double> Xn(total_variables-contraints_number, 0.f); // non-basic solutions --- TIO(Xn) <- 0 
 
         std::cout << "Xb" << std::endl;
-        Xb.printMatrix();
+        Xb->printMatrix();
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASSO 2: Cálculo dos custos relativos
@@ -122,29 +120,31 @@ int main(int argc, char const *argv[])
         *               λ ← cB B^(−1) ---> λ vetor mult, cB custos básicos, B_inverse
         */
 
-        Matrix cB = createBasicCoeficientsVector(c, basicIndexes);
+        Matrix *cB = new Matrix(createBasicCoeficientsVector(c, basicIndexes));
 
-        Matrix lambida = cB.transpose() * B_inverse;
-        //Matrix lambida_t = lambida.transpose();
+        Matrix *lambida = new Matrix(cB->transpose().multiply(B_inverse));
 
         std::cout << "cb\n";
-        cB.printMatrix();
+        cB->printMatrix();
 
         std::cout << "lambida\n";
-        lambida.printMatrix();
+        lambida->printMatrix();
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASSO 2: Cálculo dos custos relativos
         *          2.2: custos relativos
-        *               cChapeuNj <- cNj - lambida_t*aNj j = 1, 2, ..., n-m
+        *               cChapeuNj <- cNj - lambida*aNj j = 1, 2, ..., n-m
         */
 
        std::vector<double> c_hat;
         
-        for (unsigned j = 0; j < total_variables-nE; j++) {
-            Matrix a = A.getColumnMatrix(nonBasicIndexes[j]);
-            Matrix lambida_nao_basico = lambida * a;
-            c_hat.push_back(c[nonBasicIndexes[j]] - lambida_nao_basico.getMatrix()[0][0]); 
+        for (unsigned j = 0; j < variables_number; j++) {
+            Matrix *a = new Matrix(A->getColumnMatrix(nonBasicIndexes[j]));
+            Matrix *lambida_nao_basico = new Matrix(lambida->multiply(a));
+            c_hat.push_back(c[nonBasicIndexes[j]] - lambida_nao_basico->getMatrix()[0][0]);
+
+            delete a;
+            delete lambida_nao_basico;
         }
 
         std::cout << "c hat\n";
@@ -180,7 +180,9 @@ int main(int argc, char const *argv[])
        *          y <- B^(-1) * aNk (equivalente a resolva o sistema By=aNk)
        */
 
-        Matrix y = B_inverse * N.getColumnMatrix(k);
+        Matrix *temp = new Matrix(N->getColumnMatrix(k));
+        Matrix *y = new Matrix(B_inverse->multiply(temp));
+        delete temp;
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASO 5: determinación del paso y variable que va salir de la matriz base
@@ -190,13 +192,13 @@ int main(int argc, char const *argv[])
         *               xBl sale de la base
         */
 
-        if (y.isNegative()) exit(4);
+        if (y->isNegative()) exit(4);
 
         std::vector<double> temp_min;
 
-        for (unsigned i = 0; i < nE; i++) {
-            if (y.getMatrix()[i][0] > 0) {
-                temp_min.push_back(Xb.getMatrix()[i][0] / y.getMatrix()[i][0]);
+        for (unsigned i = 0; i < contraints_number; i++) {
+            if (y->getMatrix()[i][0] > 0) {
+                temp_min.push_back(Xb->getMatrix()[i][0] / y->getMatrix()[i][0]);
             } else {
                 temp_min.push_back(0.f); // pegar o indice l correto
             }
@@ -208,22 +210,35 @@ int main(int argc, char const *argv[])
 
         if (l == -1) break; // y <= 0
 
-        std::cout << "chapeu evandro " << epsilon_hat << " l " << l << std::endl;
+        std::cout << "y\n";
+        y->printMatrix();
+        std::cout << "epsilson " << epsilon_hat << " l=" << l << std::endl;
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASSO 6: atualização, nova partição básica
         *           troque a l-ésima coluna de B pela k-ésima coluna de N 
         */
 
-        B.swapColumns(N, k, (unsigned)l);
+        B->swapColumns(N, k, (unsigned)l);
 
         // update basic and non-basic indees
-        auto temp = basicIndexes[l];
+        auto temp0 = basicIndexes[l];
         basicIndexes[l] = nonBasicIndexes[k];
-        nonBasicIndexes[k] = temp;
+        nonBasicIndexes[k] = temp0;
+
+        delete B_inverse;
+        delete Xb;
+        delete cB;
+        delete lambida;
+        delete y;
     }
 
     std::cout << "final\n";
 
+    // free memory
+    delete A;
+    delete B;
+    delete N;
+    delete b;
     return 0;
 }

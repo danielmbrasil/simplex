@@ -8,7 +8,9 @@ class Matrix
 public:
     // constructor
     Matrix(unsigned, unsigned);
-    Matrix(Matrix &, std::vector<int> const&);
+    Matrix(Matrix *, std::vector<unsigned> const&);
+
+    ~Matrix() = default;
 
     // getters
     inline unsigned getRows() const { return m_rows; } // get number of rows in theta(1)
@@ -21,12 +23,12 @@ public:
     void setNewValueAtSpecificPositionOnMatrix(unsigned, unsigned, double);
 
     // operators overload
-    Matrix operator*(Matrix const &);
+    Matrix multiply(Matrix *);
 
     // matrix transformations
     Matrix transpose();
     Matrix inverse();
-    void swapColumns(Matrix &, unsigned, unsigned);
+    void swapColumns(Matrix *, unsigned, unsigned);
 
     // i/o
     void readMatrix();

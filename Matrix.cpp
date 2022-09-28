@@ -8,29 +8,29 @@ Matrix::Matrix(unsigned rows, unsigned cols) {
     this->m_matrix.resize(rows, std::vector<double>(cols, 0.f));
 }
 
-Matrix::Matrix(Matrix &A, std::vector<int> const &indexes) {
-    this->m_rows = A.getRows();
+Matrix::Matrix(Matrix *A, std::vector<unsigned> const &indexes) {
+    this->m_rows = A->getRows();
     this->m_cols = indexes.size();
     this->m_matrix.resize(this->m_rows, std::vector<double>(this->m_cols, 0.f));
 
     unsigned j = 0;
     for (auto col : indexes) {
         for (unsigned i = 0; i < this->getRows(); i++) {
-            this->m_matrix[i][j] = A.m_matrix[i][col];
+            this->m_matrix[i][j] = A->m_matrix[i][col];
         }
         j++;
     }
 }
 
-Matrix Matrix::operator*(Matrix const &B) {
-    if (this->getCols() != B.getRows()) exit(1); // check if it's possible to multiply
+Matrix Matrix::multiply(Matrix *B) {
+    if (this->getCols() != B->getRows()) exit(1); // check if it's possible to multiply
 
-    Matrix result(this->getRows(), B.getCols());
+    Matrix result(this->getRows(), B->getCols());
 
     for (unsigned i = 0; i < this->getRows(); i++)
-        for (unsigned j = 0; j < B.getCols(); j++)
+        for (unsigned j = 0; j < B->getCols(); j++)
             for (unsigned k = 0; k < this->getCols(); k++)
-                result.m_matrix[i][j] += this->m_matrix[i][k] * B.m_matrix[k][j];
+                result.m_matrix[i][j] += this->m_matrix[i][k] * B->m_matrix[k][j];
 
     return result;
 }
@@ -184,10 +184,10 @@ void Matrix::setNewValueAtSpecificPositionOnMatrix(unsigned i, unsigned j, doubl
     this->m_matrix[i][j] = newValue;
 }
 
-void Matrix::swapColumns(Matrix &N, unsigned k, unsigned l) {
+void Matrix::swapColumns(Matrix *N, unsigned k, unsigned l) {
     for (unsigned i = 0; i < this->getRows(); i++) {
         double temp = this->m_matrix[i][l];
-        this->m_matrix[i][l] = N.getMatrix()[i][k];
-        N.setNewValueAtSpecificPositionOnMatrix(i, k, temp);
+        this->m_matrix[i][l] = N->getMatrix()[i][k];
+        N->setNewValueAtSpecificPositionOnMatrix(i, k, temp);
     }
 }

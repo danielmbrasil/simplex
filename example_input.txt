@@ -1,6 +1,6 @@
-tres valores, nE (número de equações), nVO (número de variáveis originais) e nVF (número variáveis de folga)
-vetor de coeficientes da função Z (nVO)
-matriz A, cujo tamanho é nEx(nVO+nVF)
-vetor de termos independentes, cujo tamanho é nE
-vetor B (vetor dos indíces básicos), cujo tamanho é nE
-vetor N (vetor dos indíces não básicos), cujo tamanho é nVO+nVF
+tres valores, contraints_number (número de restrições), variables_number (número de variáveis)
+vetor de coeficientes da função Z de tamanho variables_number
+matriz A, cujo tamanho é constraints_numberx(constraints_number + variables_number)
+matriz coluna de termos independentes, cujo tamanho é constraints_numberx1
+vetor B (vetor dos indíces básicos), cujo tamanho é constraints_number
+vetor N (vetor dos indíces não básicos), cujo tamanho é variables_number
