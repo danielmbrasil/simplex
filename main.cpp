@@ -249,8 +249,13 @@ int main(int argc, char const *argv[])
     }
 
     double Z = 0.f;
-    for (unsigned i = 0; i < constraints_number; i++) {
-        Z += c[i] * Xb->getMatrix()[i][0];
+    unsigned i = 0;
+    for (auto bi : basicIndexes) {
+        std::cout << "bi " << bi << std::endl;
+        if (bi < Xb->getRows()) {
+            Z += std::abs(c[bi] * Xb->getMatrix()[i][0]);
+        }
+        i++;
     }
 
     std::cout << "|Z| = " << std::setprecision(5) << std::fixed << std::abs(Z) << std::endl;
