@@ -1,0 +1,30 @@
+
+ITERAÇÃO 1
+Matriz basica
+1.00000 0.00000 
+0.00000 1.00000 
+Matriz nao basica
+-0.50000 1.00000 
+-1.00000 1.00000 
+basic indexes
+2 3 
+non-basic indexes
+0 1 
+Matriz B inversa
+1.00000 -0.00000 
+-0.00000 1.00000 
+Xb
+2.00000 
+1.00000 
+cb
+0.00000 
+0.00000 
+lambida
+0.00000 0.00000 
+c hat
+-2.00000 -2.00000 
+min -2.00000 k 0
+y
+-0.50000 
+-1.00000 
+Y is negative. No finite solution

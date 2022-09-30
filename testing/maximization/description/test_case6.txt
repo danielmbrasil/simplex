@@ -1,0 +1,4 @@
+Questão 1. i) dos exercícios do capítulo 5
+Resultado esperado (segundo https://otimizacao.js.org/simplex.html):
+(x1, x2, x5) = (6.4, 5.2, 0)
+Z = 11.6

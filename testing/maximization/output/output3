@@ -1,0 +1,60 @@
+
+ITERAÇÃO 1
+Matriz basica
+1.00000 0.00000 
+0.00000 1.00000 
+Matriz nao basica
+2.00000 1.00000 
+1.00000 4.00000 
+basic indexes
+2 3 
+non-basic indexes
+0 1 
+Matriz B inversa
+1.00000 -0.00000 
+-0.00000 1.00000 
+Xb
+30.00000 
+40.00000 
+cb
+0.00000 
+0.00000 
+lambida
+0.00000 0.00000 
+c hat
+-3.00000 -1.00000 
+min -3.00000 k 0
+y
+2.00000 
+1.00000 
+y
+2.00000 
+1.00000 
+epsilon 15.00000 l=0
+
+ITERAÇÃO 2
+Matriz basica
+2.00000 0.00000 
+1.00000 1.00000 
+Matriz nao basica
+1.00000 1.00000 
+0.00000 4.00000 
+basic indexes
+0 3 
+non-basic indexes
+2 1 
+Matriz B inversa
+0.50000 -0.00000 
+-0.50000 1.00000 
+Xb
+15.00000 
+25.00000 
+cb
+-3.00000 
+0.00000 
+lambida
+-1.50000 0.00000 
+c hat
+1.50000 0.50000 
+min 0.50000 k 1
+|Z| = 70.00000

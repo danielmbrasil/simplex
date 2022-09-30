@@ -1,5 +1,6 @@
 #include "Matrix.h"
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 
 Matrix::Matrix(unsigned rows, unsigned cols) {
@@ -23,7 +24,10 @@ Matrix::Matrix(Matrix *A, std::vector<unsigned> const &indexes) {
 }
 
 Matrix Matrix::multiply(Matrix *B) {
-    if (this->getCols() != B->getRows()) exit(1); // check if it's possible to multiply
+    if (this->getCols() != B->getRows()) {
+        std::cout << "Not possible to multiply matrices\n";
+        exit(1);
+    } // check if it's possible to multiply
 
     Matrix result(this->getRows(), B->getCols());
 
@@ -47,7 +51,10 @@ Matrix Matrix::transpose() {
 }
 
 double Matrix::determinant() {
-    if (this->getRows() != this->getCols()) exit(2); // non-square matrix
+    if (this->getRows() != this->getCols()) {
+        std::cout << "Matrix is not square\n";
+        exit(2);
+    } // non-square matrix
 
     if (this->getCols() == 1) return this->m_matrix[0][0]; // 1-element matrix
 
@@ -124,7 +131,10 @@ Matrix Matrix::adjoint() {
 Matrix Matrix::inverse() {
     int det = (int) this->determinant();
 
-    if (det == 0) exit(3);
+    if (det == 0) {
+        std::cout << "Determinant is 0, not inversible.\n";
+        exit(3);
+    }
 
     Matrix result(this->getRows(), this->getCols());
 
@@ -155,7 +165,7 @@ void Matrix::readMatrix() {
 void Matrix::printMatrix() {
     for (unsigned i = 0; i < this->getRows(); i++) {
         for (unsigned j = 0; j < this->getCols(); j++) {
-            std::cout << this->m_matrix[i][j] << " ";
+            std::cout << std::setprecision(5) << std::fixed << this->m_matrix[i][j] << " ";
         }
         std::cout << std::endl;
     }

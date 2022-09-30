@@ -1,8 +1,9 @@
 #include <iostream>
 #include <vector>
+#include <iomanip>
 #include "Matrix.h"
 
-#define MAX_ITERATIONS 10 //18446744073709551615
+#define MAX_ITERATIONS 10000
 
 using ulooooooooong = unsigned long long;
 
@@ -42,14 +43,15 @@ Matrix createBasicCoeficientsVector(std::vector<double> const &c, std::vector<un
 
 int main(int argc, char const *argv[])
 {
-    unsigned contraints_number, variables_number; // num equações, num var originais, num v folgas
-    std::cin >> contraints_number >> variables_number;
-    unsigned total_variables = variables_number + contraints_number;
+    unsigned constraints_number, variables_number; // num equações, num var originais, num v folgas
+    std::cin >> constraints_number >> variables_number;
+    unsigned total_variables = variables_number + constraints_number;
 
-    Matrix *A = new Matrix(contraints_number, total_variables); // matriz original
-    Matrix *b = new Matrix(contraints_number, 1); // termos independentes, matriz contraints_numberx1
+    Matrix *A = new Matrix(constraints_number, total_variables); // matriz original
+    Matrix *b = new Matrix(constraints_number, 1); // termos independentes, matriz constraints_numberx1
     std::vector<double> c(total_variables, 0.f);
-
+    Matrix *Xb = nullptr; // solutions
+    
     // le vetor de coeficientes de Z
     for (unsigned i = 0; i < variables_number; i++)
         std::cin >> c[i];
@@ -60,11 +62,11 @@ int main(int argc, char const *argv[])
     // lee la matriz de los tiermos independientes
     b->readMatrix();
 
-    std::vector<unsigned> basicIndexes(contraints_number, 0); // vetor dos indices basicos
-    std::vector<unsigned> nonBasicIndexes(total_variables-contraints_number, 0); // vetor dos indices não básicos
+    std::vector<unsigned> basicIndexes(constraints_number, 0); // vetor dos indices basicos
+    std::vector<unsigned> nonBasicIndexes(total_variables-constraints_number, 0); // vetor dos indices não básicos
 
     // read basic indexes vector
-    for (int i = 0; i < contraints_number; i++)
+    for (int i = 0; i < constraints_number; i++)
         std::cin >> basicIndexes[i];
 
     // read non-basic indexes vector
@@ -108,8 +110,7 @@ int main(int argc, char const *argv[])
         std::cout << "Matriz B inversa\n";
         B_inverse->printMatrix();
 
-        Matrix *Xb = new Matrix(B_inverse->multiply(b)); // basic solutions --- TIO(Xb) <- B^(-1)*b
-        std::vector<double> Xn(total_variables-contraints_number, 0.f); // non-basic solutions --- TIO(Xn) <- 0 
+        Xb = new Matrix(B_inverse->multiply(b)); // basic solutions --- TIO(Xb) <- B^(-1)*b
 
         std::cout << "Xb" << std::endl;
         Xb->printMatrix();
@@ -144,13 +145,15 @@ int main(int argc, char const *argv[])
             c_hat.push_back(c[nonBasicIndexes[j]] - lambida_nao_basico->getMatrix()[0][0]);
 
             delete a;
+            a = nullptr;
             delete lambida_nao_basico;
+            lambida_nao_basico = nullptr;
         }
 
         std::cout << "c hat\n";
 
         for (auto c : c_hat) {
-            std::cout << c << " ";
+            std::cout << std::setprecision(5) << std::fixed << c << " ";
         }
         std::cout << std::endl;
 
@@ -161,10 +164,10 @@ int main(int argc, char const *argv[])
         *         k es el valor del índice j del valor minimo de cSombrero 
         */
 
-        int min;
+        double min;
         unsigned k;
         minimum(c_hat, &min, &k);
-        std::cout << "min " << min << " k " << k << std::endl;
+        std::cout << "min " << std::setprecision(5) << std::fixed << min << " k " << k << std::endl;
         c_hat[nonBasicIndexes[k]] = min;
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
@@ -179,10 +182,13 @@ int main(int argc, char const *argv[])
        * PASSO 4: Cálculo da direção simplex
        *          y <- B^(-1) * aNk (equivalente a resolva o sistema By=aNk)
        */
-
+//        std::cout << "N\n";
+//        N->getColumnMatrix(k).printMatrix();
         Matrix *temp = new Matrix(N->getColumnMatrix(k));
         Matrix *y = new Matrix(B_inverse->multiply(temp));
+
         delete temp;
+        temp = nullptr;
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASO 5: determinación del paso y variable que va salir de la matriz base
@@ -192,11 +198,17 @@ int main(int argc, char const *argv[])
         *               xBl sale de la base
         */
 
-        if (y->isNegative()) exit(4);
+        std::cout << "y\n";
+        y->printMatrix();
+
+        if (y->isNegative()) {
+            std::cout << "Y is negative. No finite solution\n";
+            exit(4);
+        }
 
         std::vector<double> temp_min;
 
-        for (unsigned i = 0; i < contraints_number; i++) {
+        for (unsigned i = 0; i < constraints_number; i++) {
             if (y->getMatrix()[i][0] > 0) {
                 temp_min.push_back(Xb->getMatrix()[i][0] / y->getMatrix()[i][0]);
             } else {
@@ -212,7 +224,7 @@ int main(int argc, char const *argv[])
 
         std::cout << "y\n";
         y->printMatrix();
-        std::cout << "epsilson " << epsilon_hat << " l=" << l << std::endl;
+        std::cout << "epsilon " << std::setprecision(5) << std::fixed << epsilon_hat << " l=" << l << std::endl;
 
         /* ATENÇÃO - ATENCIÓN - BEWARE
         * PASSO 6: atualização, nova partição básica
@@ -227,18 +239,33 @@ int main(int argc, char const *argv[])
         nonBasicIndexes[k] = temp0;
 
         delete B_inverse;
-        delete Xb;
+        B_inverse = nullptr;
         delete cB;
+        cB = nullptr;
         delete lambida;
+        lambida = nullptr;
         delete y;
+        y = nullptr;
     }
 
-    std::cout << "final\n";
+    double Z = 0.f;
+    for (unsigned i = 0; i < constraints_number; i++) {
+        Z += c[i] * Xb->getMatrix()[i][0];
+    }
+
+    std::cout << "|Z| = " << std::setprecision(5) << std::fixed << std::abs(Z) << std::endl;
 
     // free memory
     delete A;
+    A = nullptr;
     delete B;
+    B = nullptr;
     delete N;
+    N = nullptr;
     delete b;
+    b = nullptr;
+    delete Xb;
+    Xb = nullptr;
+
     return 0;
 }

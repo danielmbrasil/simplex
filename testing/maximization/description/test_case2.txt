@@ -1,0 +1,4 @@
+Questão 1. c) dos exercícios do capítulo 5
+Resultado esperado (segundo https://otimizacao.js.org/simplex.html):
+(x1, x3) = (3, 2)
+Z = 3

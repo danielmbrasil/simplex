@@ -1,0 +1,3 @@
+Questão 1. h) dos exercícios do capítulo 5
+Resultado esperado (segundo https://otimizacao.js.org/simplex.html):
+ilimitada

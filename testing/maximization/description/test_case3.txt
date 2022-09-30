@@ -1,0 +1,4 @@
+Questão 1. d) dos exercícios do capítulo 5
+Resultado esperado (segundo https://otimizacao.js.org/simplex.html):
+(x1, x4) = (15, 25)
+Z = 45
